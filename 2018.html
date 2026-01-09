@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPU Bilgisayar Ağları Final Sınavı</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #00bcd4; /* Cyan Blue */
+            --correct-color: #4caf50; /* Green */
+            --wrong-color: #f44336; /* Red */
+            --hover-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header-info {
+            background-color: #263238;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            text-align: center;
+            border: 1px solid #37474f;
+        }
+
+        .score-board {
+            text-align: right;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            padding: 15px;
+            z-index: 100;
+            border-bottom: 1px solid #333;
+            font-weight: bold;
+        }
+
+        .question-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+
+        .context-box {
+            background-color: #2c2c2c;
+            border-left: 4px solid #ff9800;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            white-space: pre-line;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: #2c2c2c;
+            color: var(--text-color);
+            border: 1px solid #444;
+            padding: 15px 20px;
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn strong {
+            margin-right: 10px;
+            min-width: 25px;
+            color: var(--accent-color);
+        }
+
+        .option-btn:hover:not(.disabled) {
+            background-color: var(--hover-color);
+            border-color: var(--accent-color);
+            transform: translateX(5px);
+        }
+
+        .option-btn.correct {
+            background-color: rgba(76, 175, 80, 0.2);
+            border-color: var(--correct-color);
+            color: #81c784;
+        }
+
+        .option-btn.wrong {
+            background-color: rgba(244, 67, 54, 0.2);
+            border-color: var(--wrong-color);
+            color: #e57373;
+            text-decoration: line-through;
+        }
+
+        .explanation {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #252525;
+            border-top: 3px solid var(--accent-color);
+            border-radius: 0 0 8px 8px;
+            display: none;
+            font-size: 0.95rem;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .explanation-title {
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .explanation ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .explanation li {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+        }
+        .explanation li:last-child {
+            border-bottom: none;
+        }
+
+        .disabled {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        [Image*] {
+            display: block;
+            margin: 10px 0;
+            color: #aaa;
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>DPU Bilgisayar Ağları Final Sınavı</h1>
+    
+    <div class="header-info">
+        Öğr. Gör. Ayhan Pirinç | 25.12.2018 | Süre: 40dk
+        <br>
+        <i>Sorulara tıklayarak cevabını kontrol edebilirsin.</i>
+    </div>
+
+    <div class="score-board">
+        Puan: <span id="score">0</span> / <span id="total">0</span>
+    </div>
+
+    <div id="quiz-container">
+        </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            question: "1) Kablosuz bağlantı yapabileceğiniz cihazları modeminize kolayca bağlayabilen yöntemin adı nedir?",
+            options: { A: "Wifi", B: "SSID", C: "WPS", D: "WPA", E: "RADIUS" },
+            correct: "C",
+            details: [
+                "<strong>WPS (Wi-Fi Protected Setup):</strong> Modem üzerindeki bir butona basarak şifre girmeden cihazları bağlamayı sağlayan kolay kurulum yöntemidir.",
+                "<strong>SSID:</strong> Kablosuz ağın görünen adıdır.",
+                "<strong>WPA:</strong> Şifreleme protokolüdür.",
+                "<strong>RADIUS:</strong> Kurumsal kimlik doğrulama sunucusudur."
+            ]
+        },
+        {
+            question: "2) Aşağıdakilerden hangisi Türkiye internet servis sağlayıcılarının yaygın kullandığı modem iletişim protokoldür?",
+            options: { A: "PPPoA", B: "PPPoE", C: "ATM", D: "Frame Relay", E: "Metro Ethernet" },
+            correct: "B",
+            details: [
+                "<strong>PPPoE (Point-to-Point Protocol over Ethernet):</strong> Türkiye'de ADSL/VDSL altyapısında en yaygın kullanılan, kullanıcı adı ve şifre ile internete çıkışı sağlayan protokoldür.",
+                "<strong>PPPoA:</strong> Daha eski ATM altyapısında kullanılan protokoldür.",
+                "<strong>Metro Ethernet:</strong> Protokol değil, fiziksel bağlantı hizmetidir."
+            ]
+        },
+        {
+            question: "3) Aşağıdaki modemlerin hangisi veriyi en hızlı indirir?",
+            options: { A: "ADSL", B: "VDSL", C: "Dial up", D: "3G", E: "GPRS" },
+            correct: "B",
+            details: [
+                "<strong>VDSL (Very High Bitrate DSL):</strong> Bakır kablo üzerinden fiber hızlarına yakın (100 Mbps'e kadar) hız sunar.",
+                "<strong>ADSL:</strong> Maksimum 16-24 Mbps civarıdır.",
+                "<strong>Dial-up:</strong> Telefon hattı ile çok yavaş (56 Kbps) bağlantıdır.",
+                "<strong>GPRS:</strong> Eski nesil çok yavaş mobil internettir."
+            ]
+        },
+        {
+            question: "4) Access Point olmadan birden fazla bilgisayarın birbiri ile Wifi haberleşmesini sağlar?",
+            options: { A: "PPPoE", B: "Wimax", C: "Beacon", D: "WiFi Direct", E: "AD HOC" },
+            correct: "E",
+            details: [
+                "<strong>AD HOC:</strong> Merkezi bir cihaz (Modem/AP) olmadan cihazların doğrudan birbirine bağlandığı ağ modudur.",
+                "<strong>WiFi Direct:</strong> Benzer işi yapar ancak sınav müfredatında genellikle ağ topolojisi olarak Ad-Hoc sorulur.",
+                "<strong>Beacon:</strong> Sinyal yayma teknolojisidir."
+            ]
+        },
+        {
+            question: "5) Aşağıdakilerden hangisi günümüzdeki ev kullanıcıları için uygun bir teknoloji değildir?",
+            options: { A: "Frame Relay", B: "ISDN", C: "WIFI", D: "4G", E: "Fiber Ethernet" },
+            correct: "A",
+            details: [
+                "<strong>Frame Relay:</strong> Eski, pahalı ve şirketlerin şubelerini bağlamak için kullandığı bir WAN teknolojisidir. Ev kullanıcısı için uygun değildir.",
+                "<strong>ISDN, WIFI, 4G, Fiber:</strong> Hepsi evlerde internet erişimi için kullanılabilir."
+            ]
+        },
+        {
+            question: "6) Aşağıdakilerden hangisi günümüzde LAN topolojisinde kullanılmaz?",
+            options: { A: "Router", B: "AccessPoint", C: "Switch", D: "Ethernet Card", E: "Firewall" },
+            correct: "A",
+            details: [
+                "<strong>Router (Yönlendirici):</strong> Teknik olarak Router, LAN'ı (Yerel Ağ) WAN'a (Geniş Ağ/İnternet) bağlar. Saf bir LAN içinde (iki PC arası iletişimde) Router'a ihtiyaç yoktur, Switch yeterlidir.",
+                "<strong>Switch/AP/Ethernet Card:</strong> Bunlar LAN'ın temel yapı taşlarıdır."
+            ]
+        },
+        {
+            question: "7) LAN’da bulunan bilgisayar ağ cihazlarının MAC adreslerinin hangi uygulama ile görebiliriz?",
+            options: { A: "Ping", B: "Tracert", C: "IpConfig", D: "IfConfig", E: "Arp" },
+            correct: "E",
+            details: [
+                "<strong>Arp (Address Resolution Protocol):</strong> IP adresine karşılık gelen MAC adresini bulur. `arp -a` komutu ile ağdaki cihazların MAC tablosunu görebilirsiniz.",
+                "<strong>IpConfig:</strong> Sadece kendi MAC adresinizi gösterir, başkalarını listelemez.",
+                "<strong>Ping:</strong> Erişim kontrolü yapar."
+            ]
+        },
+        {
+            question: "8) Sadece belirli bir kuruluş içindeki bilgisayarları, yerel ağları (LAN) ve geniş alan ağlarını (WAN) birbirine bağlayan ağa ne denir?",
+            options: { A: "Wimax", B: "LAN", C: "Intranet", D: "WAN", E: "Metro Ethernet" },
+            correct: "C",
+            details: [
+                "<strong>Intranet:</strong> Kurum içi özel ağdır. LAN ve WAN teknolojilerini kullanabilir ama dışarıya kapalıdır, sadece kurum çalışanları erişir.",
+                "<strong>WAN:</strong> Genel geniş alan ağıdır, kuruma özel olmak zorunda değildir."
+            ]
+        },
+        {
+            question: "9) Aşağıdakilerden hangisi kablosuz bir ağın parçası değildir?",
+            options: { A: "AccesPoint", B: "Bluetooth", C: "Bridge", D: "Modem", E: "Infrared" },
+            correct: "D",
+            details: [
+                "<strong>Modem:</strong> Modülatör/Demodülatör. Asıl görevi kablolu sinyali (Telefon/Kablo) dijitale çevirmektir. Wi-Fi özelliği Access Point kısmından gelir. Saf modem kablosuz bir parça değildir.",
+                "<strong>AccessPoint, Bluetooth, Infrared:</strong> Kablosuz iletişim teknolojileridir.",
+                "<strong>Bridge:</strong> Kablosuz köprüleme yapabilir."
+            ]
+        },
+        {
+            question: "10) Aşağıdakilerden hangisi kablosuz ağların üstünlüklerinden değildir?",
+            options: { A: "Taşınabilirlik", B: "Zor kurulum", C: "Erişebilirlik", D: "Maliyet", E: "Kolay İletişim" },
+            correct: "B",
+            details: [
+                "<strong>Zor kurulum:</strong> Bu bir üstünlük değil, dezavantajdır (ki aslında kablosuz kurulum kablo çekmekten daha kolaydır, yani şık çifte yanlıştır, bu yüzden cevap budur).",
+                "Diğerleri (Taşınabilirlik, Erişebilirlik) kablosuzun avantajlarıdır."
+            ]
+        },
+        {
+            question: "11) Aşağıdakilerden hangisi kablosuz ağların üstünlüklerindendir?",
+            options: { A: "Güvenlik", B: "Yüksek Hız", C: "Sınırsız Kullanıcı", D: "Sağlıklı", E: "Kapsama alanı" },
+            correct: "E",
+            details: [
+                "<strong>Kapsama Alanı:</strong> Kablo çekmenin imkansız olduğu yerlerde (bahçe, lobi vb.) internet erişimi sağlar.",
+                "Güvenlik ve Hız konusunda kablolu ağlar (Ethernet) daha üstündür."
+            ]
+        },
+        {
+            question: "12) Aşağıdakilerden hangisi kablosuz haberleşme standardı değildir?",
+            options: { A: "Wifi", B: "Bluetooth", C: "GPS", D: "WPS", E: "4G" },
+            correct: "D",
+            details: [
+                "<strong>WPS:</strong> Bir iletişim standardı (802.11 gibi) değil, bir <strong>Güvenlik/Kurulum</strong> butonudur.",
+                "<strong>Wifi (802.11), Bluetooth (802.15), 4G:</strong> İletişim standartlarıdır.",
+                "<strong>GPS:</strong> Tek yönlü de olsa bir sinyal alım standardıdır."
+            ]
+        },
+        {
+            question: "13) Aşağıdakilerden hangisi en düşük 802.11 kablosuz iletişim standartlıdır?",
+            options: { A: "a", B: "ac", C: "n", D: "g", E: "b" },
+            correct: "A",
+            details: [
+                "<strong>Cevap A şıkkı olarak verilmiştir.</strong>",
+                "<i>Teknik Not:</i> Hız sıralaması şöyledir: 802.11b (11 Mbps) < 802.11a/g (54 Mbps) < 802.11n < 802.11ac. Sınavda 'a' şıkkı işaretlenmiştir (Alfabetik sıra veya 5GHz kapsama alanı düşüklüğü kastedilmiş olabilir).",
+                ""
+            ]
+        },
+        {
+            question: "14) Aşağıdakilerden hangisi ev kullanıcılarının kullandığı kablosuz cihazın sinyal gücü olabilir?",
+            options: { A: "0.01Watt", B: "0.01mW", C: "200mW", D: "5W", E: "5KW" },
+            correct: "C",
+            details: [
+                "<strong>200mW:</strong> Ev tipi güçlü modemler ve Access Pointler genellikle 100mW ile 1000mW (1W) arasında çalışır. 200mW makul bir 'High Power' değeridir.",
+                "<strong>0.01mW:</strong> Çok düşüktür.",
+                "<strong>5W:</strong> İnsan sağlığı için tehlikeli ve yasal sınırların üzerindedir (Baz istasyonu gücüne yakındır)."
+            ]
+        },
+        {
+            question: "15) Aşağıdakilerden hangisi kablosuz ağların güvenlik seviyelerinden değildir?",
+            options: { A: "Gizli SSD", B: "WPA", C: "WPA2", D: "RADUS", E: "WEP" },
+            correct: "A",
+            details: [
+                "<strong>Gizli SSID (SSID Hiding):</strong> Bu bir şifreleme veya güvenlik protokolü değildir. Sadece ağ adını listeden gizler, 'Güvenlik seviyesi' olarak kabul edilmez (Security by Obscurity).",
+                "<strong>WEP, WPA, WPA2:</strong> Şifreleme protokolleridir.",
+                "<strong>RADIUS:</strong> Kimlik doğrulama sunucusudur (WPA-Enterprise)."
+            ]
+        },
+        {
+            question: "16) Aşağıdakilerden hangisinin veri iletişimi en hızlıdır?",
+            options: { A: "IrDA", B: "Fiber", C: "Bluetooth", D: "Wifi", E: "Ethernet 1000 Base" },
+            correct: "B",
+            details: [
+                "<strong>Fiber Optik:</strong> Işık hızında veri iletimi sağlar ve bant genişliği teorik olarak en yüksektir.",
+                "<strong>Ethernet 1000 Base:</strong> 1 Gbps hızındadır.",
+                "<strong>IrDA:</strong> En yavaşıdır."
+            ]
+        },
+        {
+            question: "17) Aşağıdakilerden hangisi Cisco sertifikalılarından biridir?",
+            options: { A: "MSP", B: "MCSA", C: "MCSE", D: "CCNA", E: "Hiçbiri" },
+            correct: "D",
+            details: [
+                "<strong>CCNA (Cisco Certified Network Associate):</strong> Cisco'nun en temel ağ uzmanlığı sertifikasıdır.",
+                "<strong>MCSA/MCSE:</strong> Microsoft sertifikalarıdır."
+            ]
+        },
+        {
+            question: "18) C# programlamada Thread’ler arası veri aktarımı hangi metot ile gerçekleştirilir?",
+            options: { A: "Post", B: "Invoke", C: "Stream", D: "Send", E: "Submit" },
+            correct: "B",
+            details: [
+                "<strong>Invoke:</strong> UI (Arayüz) Thread'ine başka bir Thread'den güvenli veri göndermek için kullanılır.",
+                "<strong>Send/Post:</strong> Genellikle HTTP isteklerinde kullanılır."
+            ]
+        },
+        {
+            question: "19) Aşağıdakilerden hangisi sunucu olarak kullanılmaz?",
+            options: { A: "Http", B: "Proxy", C: "Dhcp", D: "Ftp", E: "FireWall" },
+            correct: "E",
+            details: [
+                "<strong>Firewall (Güvenlik Duvarı):</strong> Bir içerik veya hizmet sunmaz, trafiği denetler ve engeller. Diğerleri (HTTP, FTP, DHCP) istemciye bir veri sunar."
+            ]
+        },
+        {
+            question: "20) Arama motoru olarak geliştirilen Web uygulamalarının sunuculara bağlanma şekli nasıl olmalıdır?",
+            options: { A: "senkron", B: "asenkron", C: "multicast", D: "unicast", E: "Hiçbiri" },
+            correct: "B",
+            details: [
+                "<strong>Asenkron:</strong> Arama motoru botu binlerce siteyi gezerken bir sitenin açılmasını bekleyip donmamalıdır. Bir istek bitmeden diğerini yapabilmelidir (Non-blocking)."
+            ]
+        },
+        {
+            question: "21) Aşağıdaki C# nesnelerinden hangisi Socket nesnesi barındırmaz?",
+            options: { A: "UtpClient", B: "TcpClient", C: "TcpListener", D: "NetworkStream", E: "HttpClient" },
+            correct: "D",
+            details: [
+                "<strong>NetworkStream:</strong> Bu sınıf, var olan bir soket üzerinden veri akışını yönetir. Kendisi bir soket 'barındırmaz' veya 'oluşturmaz', bir sokete 'bağlanır'.",
+                "TcpClient, TcpListener, UdpClient: Kendi içlerinde birer Socket nesnesi oluştururlar."
+            ]
+        },
+        {
+            question: "22) C# HttpClient nesnesi ile aşağıdakilerden hangisini geçekleştirilmesi için uygun değildir?",
+            options: { A: "Proxy", B: "Download Manager", C: "Sunucu testi", D: "Arama Motoru", E: "Veri alma" },
+            correct: "A",
+            details: [
+                "<strong>Proxy:</strong> HttpClient bir İstemcidir (Client). Bir 'Proxy Sunucusu' gibi davranıp başkalarının trafiğini yönetemez. (Ancak bir Proxy'ye bağlanabilir, soru muhtemelen Proxy rolü üstlenmeyi kastediyor).",
+                "Diğer şıklar (İndirme, Veri alma) HttpClient'ın ana görevidir."
+            ]
+        },
+        {
+            question: "23) Aşağıdakilerden hangisi C# ağ programlama en temel nesnesidir?",
+            options: { A: "Socket", B: "TCpClient", C: "HttpClient", D: "WebClient", E: "Stream" },
+            correct: "A",
+            details: [
+                "<strong>Socket:</strong> En alt seviye iletişim nesnesidir. TCP, UDP, HTTP istemcilerinin hepsi temelinde Socket kullanır."
+            ]
+        },
+        {
+            question: "24) Aşağıdakilerden hangisi Mesajlaşma Uygulaması geliştirmek ve test etmek için zorunlu olamaz?",
+            options: { A: "Thread", B: "Socket", C: "Mesaj Protocol", D: "Network", E: "Aynı OS" },
+            correct: "E",
+            details: [
+                "<strong>Aynı OS (İşletim Sistemi):</strong> İstemci Windows, Sunucu Linux olabilir. Ağ protokolleri evrenseldir, işletim sisteminden bağımsızdır.",
+                "Thread, Socket, Protokol: İletişim için şarttır."
+            ]
+        },
+        {
+            question: "25) Ağ programlamada soket için en az öneme sahiptir?",
+            options: { A: "Port", B: "IP", C: "UTP", D: "TCP", E: "IP Sınıfı" },
+            correct: "E",
+            details: [
+                "<strong>IP Sınıfı (Class A, B, C):</strong> Yazılım tarafında IP adresinin sınıfının bir önemi yoktur. IP, Port ve Protokol (TCP/UDP) soket oluşturmak için yeterlidir."
+            ]
+        },
+        {
+            context: "Gri Alan Sıralaması:\n1-İstemci http başlık gönderme\n2-İstemci mesaj karakter kodlama\n3-İstemci mesaj gönderme\n4-Sunucu Thread açma\n5-Sunucu http Başlık gönderme\n6-Sunucu mesaj karakter kodlama\n7-Sunucu mesaj gönderme\n8-Sunucu Bağlantı kes\n9-İstemci içerik karakter kodu çözme\n10-İstemci Bağlantı kes",
+            question: "26) Gri alanda sunucu-istemci uygulaması için sıralama yapıldığında “İstemci http başlık gönderme” hangi aşamadadır?",
+            options: { A: "1", B: "2", C: "4", D: "6", E: "7" },
+            correct: "A",
+            details: [
+                "<strong>Cevap 1:</strong> Listeye göre 'İstemci http başlık gönderme' 1. sıradadır."
+            ]
+        },
+        {
+            context: "Gri Alan Sıralaması:\n(Yukarıdaki listenin devamı)",
+            question: "27) Gri alanda sunucu-istemci uygulaması için sıralama yapıldığında “Sunucu mesaj gönderme” hangi aşamadadır?",
+            options: { A: "1", B: "3", C: "5", D: "7", E: "9" },
+            correct: "D",
+            details: [
+                "<strong>Cevap 7:</strong> Listeye göre 'Sunucu mesaj gönderme' 7. sıradadır."
+            ]
+        },
+        {
+            context: "Gri Alan Sıralaması:\n(Yukarıdaki listenin devamı)",
+            question: "28) Gri alanda sunucu-istemci uygulaması için sıralama yapıldığında “İstemci Bağlantı kes” hangi aşamadadır?",
+            options: { A: "6", B: "7", C: "8", D: "9", E: "10" },
+            correct: "E",
+            details: [
+                "<strong>Cevap 10:</strong> Listenin son adımıdır. (Not: Listede '10-İstemci Bağlantı kes' olarak verilmiştir)."
+            ]
+        },
+        {
+            question: "29) “Wake On Lan” için aşağıdakilerden hangisi yanlıştır?",
+            options: { A: "PC/Sunucu uzaktan açmak için kullanılır", B: "Bilgisayarın MAC adresi kullanılır", C: "Bilgisayarın IP’si kullanılır", D: "Enerji tasarrufu sağlar", E: "Ağ kartının desteği olmalı" },
+            correct: "C",
+            details: [
+                "<strong>Bilgisayarın IP'si kullanılır (Yanlış):</strong> Kapalı bilgisayarın IP adresi yoktur. WoL işlemi MAC adresi (Magic Packet) ile yapılır."
+            ]
+        },
+        {
+            question: "30) “Boot from Lan” için aşağıdakilerden hangisi yanlıştır?",
+            options: { A: "Bilgisayar belleği disk olarak kullanılır", B: "Çok fazla bilgisayar aynı anda kurulabilir", C: "Ağ bağdaştırıcı kartı zorunlu değildir", D: "İstemci bilgisayarlar ağdan başlatılabilir", E: "Dahili disk olmak zorunda değildir" },
+            correct: "C",
+            details: [
+                "<strong>Ağ bağdaştırıcı kartı zorunlu değildir (Yanlış):</strong> Boot from LAN (PXE) için Ethernet kartı (NIC) kesinlikle zorunludur. Tüm veri bu karttan akar."
+            ]
+        },
+        {
+            question: "31) BLE cihazları ile zamanın küçük bir diliminde düzenli olarak mesaj yayarak uzun ömürlü çalışmaya olanak tanıyan teknolojinin adı nedir?",
+            options: { A: "4G", B: "GPS", C: "GPRS", D: "Beacon", E: "WIFI" },
+            correct: "D",
+            details: [
+                "<strong>Beacon:</strong> Bluetooth Low Energy (BLE) kullanarak düzenli aralıklarla sinyal yayan ve pil ömrü çok uzun olan cihazlardır/teknolojidir."
+            ]
+        },
+        {
+            question: "32) Dersimizde, Wifi modülü (ESP32) ile aşağıdakilerden hangisinin programlaması gerçekleştirilmemiştir?",
+            options: { A: "Access Point", B: "Beacon Client", C: "OTA Server", D: "Web Server", E: "Multicast Akış" },
+            correct: "E",
+            details: [
+                "<strong>Multicast Akış:</strong> ESP32 ile görüntü/ses gibi yüksek veri gerektiren 'Multicast Stream' işlemleri derste yapılmamıştır (AP, Web Server, OTA sık yapılan uygulamalardır)."
+            ]
+        },
+        {
+            question: "33) http protokolünde url içindeki istek parametreleri (path) hangi başlık satırında gönderilir?",
+            options: { A: "GET", B: "POST", C: "HOST", D: "LOCATION", E: "LINK" },
+            correct: "A",
+            details: [
+                "<strong>GET:</strong> URL'deki parametreler (örn: ?id=5) GET isteği ile adres satırında gönderilir. POST gövdede gönderir."
+            ]
+        },
+        {
+            question: "34) Aşağıdakilerden hangisi ağ yönetim protokoldür?",
+            options: { A: "NTP", B: "SNMP", C: "POP3", D: "FTP", E: "SMTP" },
+            correct: "B",
+            details: [
+                "<strong>SNMP (Simple Network Management Protocol):</strong> Router, Switch gibi cihazları yönetmek ve izlemek için kullanılır.",
+                "NTP: Zaman, POP3/SMTP: Mail, FTP: Dosya."
+            ]
+        },
+        {
+            question: "35) VLC Media player ile hangi protokollerde yayın yapamaz?",
+            options: { A: "Http", B: "RTP", C: "UDP", D: "File", E: "DVB" },
+            correct: "E",
+            details: [
+                "<strong>DVB (Digital Video Broadcasting):</strong> Bu bir donanım/yayın standardıdır (Uydu/Kablo TV). VLC bir yazılımdır, DVB sinyalini 'yayınlayamaz' (Stream edemez), ancak bir DVB kartından gelen yayını oynatabilir veya IP'ye çevirebilir. Yayın protokolü olarak HTTP/RTP/UDP kullanır."
+            ]
+        },
+        {
+            question: "36) Multicast yayın yapmak için hangi IP uygundur?",
+            options: { A: "10.1.1.255", B: "223.0.0.1", C: "224.0.0.1", D: "240 .255.255.255", E: "255.0.0.1" },
+            correct: "C",
+            details: [
+                "<strong>224.0.0.1:</strong> D Sınıfı IP adresleri (224.0.0.0 - 239.255.255.255) Multicast için ayrılmıştır. 224.0.0.1 ağdaki tüm cihazları temsil eden genel multicast adresidir.",
+                ""
+            ]
+        },
+        {
+            question: "37) C# programlamada multicast yayın yapmak için hangi nesne kullanılmalıdır?",
+            options: { A: "TCPClient", B: "WebClient", C: "IPEndPoint", D: "UdpClient", E: "VLC" },
+            correct: "D",
+            details: [
+                "<strong>UdpClient:</strong> Multicast (Çok'a gönderim) sadece UDP protokolü ile mümkündür. UdpClient sınıfındaki `JoinMulticastGroup` metodu ile yapılır."
+            ]
+        }
+    ];
+
+    const quizContainer = document.getElementById('quiz-container');
+    const scoreElement = document.getElementById('score');
+    const totalElement = document.getElementById('total');
+    let score = 0;
+
+    totalElement.textContent = quizData.length;
+
+    function renderQuiz() {
+        quizData.forEach((data, index) => {
+            const card = document.createElement('div');
+            card.classList.add('question-card');
+
+            // Eğer özel bir bağlam/liste varsa göster
+            if (data.context) {
+                const contextDiv = document.createElement('div');
+                contextDiv.classList.add('context-box');
+                contextDiv.textContent = data.context;
+                card.appendChild(contextDiv);
+            }
+
+            const questionTitle = document.createElement('div');
+            questionTitle.classList.add('question-text');
+            questionTitle.textContent = data.question;
+            card.appendChild(questionTitle);
+
+            const optionsDiv = document.createElement('div');
+            optionsDiv.classList.add('options');
+
+            // Şıkları oluştur
+            for (const [key, value] of Object.entries(data.options)) {
+                const btn = document.createElement('button');
+                btn.classList.add('option-btn');
+                btn.innerHTML = `<strong>${key})</strong> ${value}`;
+                btn.onclick = () => checkAnswer(btn, index, key, data.correct);
+                optionsDiv.appendChild(btn);
+            }
+            card.appendChild(optionsDiv);
+
+            // Açıklama alanı
+            const explanationDiv = document.createElement('div');
+            explanationDiv.id = `explanation-${index}`;
+            explanationDiv.classList.add('explanation');
+            
+            explanationDiv.innerHTML = `<span class="explanation-title">Açıklama:</span>`;
+            
+            const ul = document.createElement('ul');
+            data.details.forEach(detail => {
+                const li = document.createElement('li');
+                li.innerHTML = detail;
+                ul.appendChild(li);
+            });
+            explanationDiv.appendChild(ul);
+            
+            card.appendChild(explanationDiv);
+            quizContainer.appendChild(card);
+        });
+    }
+
+    function checkAnswer(selectedBtn, index, selectedOption, correctOption) {
+        const parentDiv = selectedBtn.parentElement;
+        if (parentDiv.getAttribute('data-answered') === 'true') return;
+
+        parentDiv.setAttribute('data-answered', 'true');
+        const buttons = parentDiv.querySelectorAll('.option-btn');
+
+        buttons.forEach(btn => {
+            btn.classList.add('disabled');
+            if (btn.innerText.includes(correctOption + ")")) {
+                btn.classList.add('correct');
+            }
+        });
+
+        if (selectedOption === correctOption) {
+            score++;
+            scoreElement.textContent = score;
+        } else {
+            selectedBtn.classList.add('wrong');
+        }
+
+        document.getElementById(`explanation-${index}`).style.display = 'block';
+    }
+
+    renderQuiz();
+
+</script>
+
+</body>
+</html>
